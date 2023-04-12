@@ -1,12 +1,11 @@
 # GWAS preprocessing
  
 This directory holds the scripts that were used to preprocess GWAS summary statistics for later use in MAGMA or LDSC
----
 
 Included in this directory are currently (see below for description of data sources):
  
  phenotype | abbreviation 
- --- | --- 
+ |:-- |:-- | 
  Addiction - alcohol use | AddAlc 
  Addiction - cannabis use | AddCannabis
  ADHD |  
