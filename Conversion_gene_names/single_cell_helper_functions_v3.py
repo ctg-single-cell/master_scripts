@@ -24,18 +24,17 @@ import sys
 
 def match_alias_previous(gene_names, merged, adata, alternate_symbol):
     """
-    This function deals with alias and previous symbols
-    Input:
+    This function deals with alias and previous symbols.
     alternate_symbol is `Alias symbols` or `Previous symbols`
     """
-    # create a list of all the aliases:
-    other_symbols = []
+    # create a list of all the alternate symbol:
+    all_alternate_symbols = []
     for p in range(gene_names.shape[0]):
-        other_symbols = other_symbols + list(re.split(', | ', gene_names.loc[p, alternate_symbol]))
+        all_alternate_symbols = all_alternate_symbols + list(re.split(', | ', gene_names.loc[p, alternate_symbol]))
     for gene in merged.index:
-        # check first whether the gene name is in the aliases; if so start further search
+        # check first whether the gene name is in the all_alternate_symbols list; if so start further search
         if merged.loc[gene, "symbol"] != merged.loc[gene, 'Approved symbol']:
-            if merged.loc[gene, 'symbol'] in other_symbols:
+            if merged.loc[gene, 'symbol'] in all_alternate_symbols:
                 print(merged.loc[gene, "symbol"])
                 # alias is in the table, now we need to find out where
                 found = []
@@ -81,15 +80,15 @@ def add_gene_names_human(adata, gene_names_fp, gene_names_org, gene_names_add):
         merged = pd.merge(adata.var, gene_names, how='left', left_on='symbol', right_on="Approved symbol")
         print(
             f"INFO: After merging adata.var and gene_names on {gene_names_org}, there are {merged.shape[0]} rows and {merged.shape[1]} columns.")
-        # we ignore previous symbols (probably previous for a reason)
-        # but we look for Alias symbols - this could create duplicates if both the approved symbol and an alias is in the list, or if there are multiple aliases for different genes
+
+        # Check for Alias symbols - this could create duplicates if both the approved symbol and an alias is in the list, or if there are multiple aliases for different genes
         # replace nan by - in alias symbols
         gene_names['Alias symbols'] = gene_names['Alias symbols'].fillna("-")  # convert NaN to -
         merged_alias = match_alias_previous(gene_names, merged, adata, "Alias symbols")
 
         # we finally do the same for previous symbols
         gene_names['Previous symbols'] = gene_names['Previous symbols'].fillna("-")
-        merged_alias_previous = match_alias_previous(gene_names, merged_alias, adata, "Alias symbols")
+        merged_alias_previous = match_alias_previous(gene_names, merged_alias, adata, "Previous symbols")
 
         merged_alias_previous.index = adata.var.index
 
@@ -101,46 +100,68 @@ def add_gene_names_human(adata, gene_names_fp, gene_names_org, gene_names_add):
         merged_alias_previous.rename(columns={"Approved symbol" : "symbol"}, inplace=True)
         outputvars = adata.var.columns.tolist() + [gene_key[gene_names_add]]
 
-    # print(merged_alias_previous.columns)
-    # print(outputvars)
     adata.var = merged_alias_previous[outputvars]
     return adata
 
 
-def add_gene_names_mouse(adata, gene_names_org, gene_names_add):
+def add_gene_names_mouse(adata, gene_names_mouse_fp, gene_names_human_fp, gene_names_org, gene_names_add):
     """ adata is an annotated data set with gene names (in some form) in the adata.var
         first we need to add the MGI IDs (if not included) since these are used to match to human homologs
-        current accepted names for gene_names_org = {"ENSMUSG" ; "MGI" ; "symbol"}
+        current accepted names for gene_names_org = {"ENSMUSG" ; "symbol"}
         curren accepted names for gene_names_add = {"HGNC ID", "NCBI Gene ID", "Ensembl gene ID" }
     """
-    gene_names_mouse = pd.read_table(
-        '/project/prjsbrouwer2/single_cell/preprocessing/raw/conversion/gene_names_mouse.txt', header=None)
-    gene_names_mouse.columns = ['MGI Marker Accession ID', 'Marker Symbol', 'Marker Name	', 'cM Position',
-                                'Chromosome', 'Ensembl Accession ID', 'Ensembl Transcript ID', 'Ensembl Protein ID',
-                                'Feature Types', 'Genome Coordinate Start', 'Genome Coordinate End', 'Strand',
+    print(f"INFO: In the adata.var, there are {adata.var.shape[0]} rows and {adata.var.shape[1]} columns.")
+    gene_names_mouse = pd.read_table(gene_names_mouse_fp, header=None)
+    gene_names_mouse.columns = ['MGI Marker Accession ID', 'Marker Symbol', 'Marker Name', 'cM Position',
+                                'Chromosome', 'Ensembl Accession ID', 'Ensembl Transcript ID', 'Ensembl Protein ID', 'Feature Types', 'Genome Coordinate Start', 'Genome Coordinate End', 'Strand',
                                 'BioTypes']
+    print(f"INFO: The mouse conversion file has {gene_names_mouse.shape[0]} rows and {gene_names_mouse.shape[1]} columns.")
     # remove one gene that has two MGI and one ENSMUSG ID:
     gene_names_mouse = gene_names_mouse[gene_names_mouse['Ensembl Accession ID'] != 'ENSMUSG00000115016']
+    print(f"INFO: After removing one gene that has teo MGI and one ENSMUSG ID, the conversion file has {gene_names_mouse.shape[0]} rows and {gene_names_mouse.shape[1]} columns.")
 
     if gene_names_org == "ENSMUSG":
         merged = pd.merge(adata.var, gene_names_mouse, how='left', left_on='ENSMUSG', right_on='Ensembl Accession ID')
         merged.index = adata.var.index
 
-    if gene_names_org == "symbol":
+    elif gene_names_org == "symbol":
         # to avoid merging twice on genes that have an ambigous symbol remove all these rows from the merging data file
         gene_names_mouse = gene_names_mouse.loc[~gene_names_mouse['Marker Symbol'].duplicated(keep=False), :]
+        print(
+            f"INFO: After duplicate removal, the conversion file has {gene_names_mouse.shape[0]} rows and {gene_names_mouse.shape[1]} columns.")
         merged = pd.merge(adata.var, gene_names_mouse, how='left', left_on='symbol', right_on='Marker Symbol')
         merged.index = adata.var.index
+        print(f"INFO: After merging adata.var and gene_names_mouse based on symbol and Marker Symbol, there are {adata.var.shape[0]} rows and {adata.var.shape[1]} columns.")
 
-    gene_names_human = pd.read_table(
-        '/project/prjsbrouwer2/single_cell/preprocessing/raw/conversion/gene_names_human.txt')
+    else:
+        sys.exit("gene_names_org specified is not supported at this time. Please make sure that it's either ENSMUSG or symbol.")
+
+    gene_names_human = pd.read_table(gene_names_human_fp)
+    print(
+        f"INFO: The human conversion file has {gene_names_human.shape[0]} rows and {gene_names_human.shape[1]} columns.")
     # remove duplicated MGI mouse IDs, we do not know which human gene they map to
     gene_names_human = gene_names_human.loc[~gene_names_human['Mouse genome database ID'].duplicated(keep=False)]
+    print(
+        f"INFO: After removing duplicated MGI mouse IDs, the human conversion file has {gene_names_human.shape[0]} rows and {gene_names_human.shape[1]} columns.")
+
     # now merge to the human homolog;
     merged = pd.merge(merged, gene_names_human[~gene_names_human['Mouse genome database ID'].isnull()], how='left',
                       left_on='MGI Marker Accession ID', right_on='Mouse genome database ID')
+    print(
+        f"INFO: After merging to the human homolog, there are {merged.shape[0]} rows and {merged.shape[1]} columns.")
 
-    print(merged.columns)
+    # print(merged.columns)
+    gene_names_add_dict = {'NCBI Gene ID': 'entrez_id',
+                           'HGNC ID': 'HGNC ID',
+                           'Ensembl gene ID': 'ensembl'}
+
+    merged.rename(columns={gene_names_add: gene_names_add_dict[gene_names_add]}, inplace=True)
+    outputvars = adata.var.columns.tolist() + [gene_names_add_dict[gene_names_add]]
+    # remove the genes that map to the same id
+    duplicates = merged[merged[gene_names_add_dict[gene_names_add]].duplicated(keep=False)].index.values
+    for gene in duplicates:
+        merged.loc[gene, gene_names_add_dict[gene_names_add]] = np.nan
+
     if gene_names_add == "NCBI Gene ID":
         merged.rename(columns={"NCBI Gene ID": 'entrez_id'}, inplace=True)
         print(merged.columns)
