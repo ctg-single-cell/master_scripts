@@ -131,7 +131,6 @@ def add_gene_names_mouse(adata, gene_names_mouse_fp, gene_names_human_fp, gene_n
             f"INFO: After duplicate removal, the conversion file has {gene_names_mouse.shape[0]} rows and {gene_names_mouse.shape[1]} columns.")
         merged = pd.merge(adata.var, gene_names_mouse, how='left', left_on='symbol', right_on='Marker Symbol')
         merged.index = adata.var.index
-        print(f"INFO: After merging adata.var and gene_names_mouse based on symbol and Marker Symbol, there are {adata.var.shape[0]} rows and {adata.var.shape[1]} columns.")
 
     else:
         sys.exit("gene_names_org specified is not supported at this time. Please make sure that it's either ENSMUSG or symbol.")
@@ -147,10 +146,7 @@ def add_gene_names_mouse(adata, gene_names_mouse_fp, gene_names_human_fp, gene_n
     # now merge to the human homolog;
     merged = pd.merge(merged, gene_names_human[~gene_names_human['Mouse genome database ID'].isnull()], how='left',
                       left_on='MGI Marker Accession ID', right_on='Mouse genome database ID')
-    print(
-        f"INFO: After merging to the human homolog, there are {merged.shape[0]} rows and {merged.shape[1]} columns.")
 
-    # print(merged.columns)
     gene_names_add_dict = {'NCBI Gene ID': 'entrez_id',
                            'HGNC ID': 'HGNC ID',
                            'Ensembl gene ID': 'ensembl'}
@@ -161,33 +157,10 @@ def add_gene_names_mouse(adata, gene_names_mouse_fp, gene_names_human_fp, gene_n
     duplicates = merged[merged[gene_names_add_dict[gene_names_add]].duplicated(keep=False)].index.values
     for gene in duplicates:
         merged.loc[gene, gene_names_add_dict[gene_names_add]] = np.nan
-
-    if gene_names_add == "NCBI Gene ID":
-        merged.rename(columns={"NCBI Gene ID": 'entrez_id'}, inplace=True)
-        print(merged.columns)
-        outputvars = adata.var.columns.tolist() + ['entrez_id']
-        print(outputvars)
-        # remove the genes that map to the same entrez_id
-        duplicates = merged[merged['entrez_id'].duplicated(keep=False)].index.values
-        for gene in duplicates:
-            merged.loc[gene, 'entrez_id'] = np.nan
-
-    if gene_names_add == "HGNC ID":
-        # merged.rename(columns={'hgnc' ,"HGNC ID "},inplace =True)
-        outputvars = adata.var.columns.tolist() + ["HGNC ID"]
-        duplicates = merged[merged["HGNC ID"].duplicated(keep=False)].index.values
-        for gene in duplicates:
-            merged.loc[gene, "HGNC ID"] = np.nan
-
-    if gene_names_add == "Ensembl gene ID":
-        merged.rename(columns={'Ensembl gene ID': 'ensembl'}, inplace=True)
-        outputvars = adata.var.columns.tolist() + ["ensembl"]
-        duplicates = merged[merged['ensembl'].duplicated(keep=False)].index.values
-        for gene in duplicates:
-            merged.loc[gene, 'ensembl'] = np.nan
-
     adata.var = merged[outputvars]
 
+    adata.var_rmna = adata.var.dropna(subset=gene_names_add_dict[gene_names_add])
+    print(f"INFO: successfully converted {adata.var_rmna.shape[0]} gene.")
     return adata
 
 
