@@ -9,7 +9,7 @@ phenos=/project/prjsbrouwer2/sumstats/input_GWAS # input path of raw and preproc
 ldsc_path=/home/brouwer2/sources/ldsc # path to LDSC installation
 ```
 
-The run_ldsc_munge.do script contains the program call munge the sumstats with GWAS specific settings.  
+The run_ldsc_munge.do script contains the program calls the munge_sumstats script with GWAS specific settings.  
 Submit to the cluster using 
 
 ```
