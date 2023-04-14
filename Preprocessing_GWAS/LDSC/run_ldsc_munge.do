@@ -1,8 +1,11 @@
-
 #!/bin/bash
 #SBATCH -N 1 
 #SBATCH -t 2:00:00
 #SBATCH -p normal
+
+hapmap=/project/prjsbrouwer2/sumstats/munged_sumstats 
+phenos=/project/prjsbrouwer2/sumstats/input_GWAS
+ldsc_path=/home/brouwer2/sources/ldsc
 
 for i in 1
 do
@@ -22,8 +25,17 @@ echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/
 echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/SavageJansen_2018_intelligence_metaanalysis.txt --merge-alleles ${hapmap}/w_hm3.snplist --out IQ --N-col N_analyzed"
 echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/sumstats_neuroticism_ctg_format.txt --merge-alleles ${hapmap}/w_hm3.snplist --out Neur --snp RSID --ignore SNP"
 echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/Meta-analysis_Wood_et_al+UKBiobank_2018.txt --merge-alleles ${hapmap}/w_hm3.snplist --out height --a1 Tested_Allele --a2 Other_Allele"
+echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/GSCAN_AgeSmk_2022_GWAS_SUMMARY_STATS_EUR.txt --merge-alleles ${hapmap}/w_hm3.snplist --out AgeSmk"
+echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/GSCAN_DrnkWk_2022_GWAS_SUMMARY_STATS_EUR.txt --merge-alleles ${hapmap}/w_hm3.snplist --out DrnkWk"
+echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/GSCAN_CigDay_2022_GWAS_SUMMARY_STATS_EUR.txt --merge-alleles ${hapmap}/w_hm3.snplist --out CigDay"
+echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/GSCAN_SmkCes_2022_GWAS_SUMMARY_STATS_EUR.txt --merge-alleles ${hapmap}/w_hm3.snplist --out SmkCes"
+echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/GSCAN_SmkInit_2022_GWAS_SUMMARY_STATS_EUR.txt --merge-alleles ${hapmap}/w_hm3.snplist --out SmkInit"
+echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/HERMES_Jan2019_HeartFailure_summary_data.txt --merge-alleles ${hapmap}/w_hm3.snplist --out HF"
+echo "python /home/brouwer2/sources/ldsc/munge_sumstats.py --sumstats ${phenos}/CAD_reformatted --merge-alleles ${hapmap}/w_hm3.snplist --signed-sumstats odds_ratio,1 --out CAD"
 done > list_munge
 
 
 parallel -N 1 --delay .2 -j 15 --joblog munge_GWAS.log --resume -a list_munge
+
+
 
