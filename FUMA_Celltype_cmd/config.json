@@ -1,0 +1,14 @@
+{
+  "magma_executable": "/home/tphung/programs/magma/magma",
+  "gene_region": "protein_coding",
+  "gene_name": "ensemble",
+  "data_dir": "/project/prjstphung/FUMA_CellType_Step1/data/",
+  "traits": [
+    "AD"
+  ],
+  "scrnas": [
+    "id1_Allen_MCA_2019"
+  ],
+  "out_dir": "/project/prjstphung/FUMA_CellType_Step1/output/",
+
+}
