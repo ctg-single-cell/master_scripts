@@ -18,7 +18,7 @@ def main():
     matrix_path = os.path.join(base_dir, id, "matrix.csv") #change here per data
     meta_path = os.path.join(base_dir, id, "metadata.csv") #change here per data
 
-    gene_names_org = "symbol"
+    gene_names_org = "symbol" #change here per data
 
     log = open(os.path.join(base_dir, id, "log.txt"), "w")
     plot1 = os.path.join(base_dir, id, "plot1.jpeg")
@@ -63,14 +63,14 @@ def main():
     sc.pp.filter_cells(adata, min_genes=200)
     sc.pp.filter_genes(adata, min_cells=3)
 
-    print(f"After first filtering (see documentation for definition), adata has {adata.n_obs} rows and {adata.n_vars} columns.", file=log)
+    print(f"After first filtering (see documentation for definition), adata has {adata.n_obs} cells and {adata.n_vars} genes.", file=log)
     # save to table 2
     first_filter = ["Filter#1", str(adata.n_obs), str(adata.n_vars)]
     print(",".join(first_filter), file=table2)
 
     # second filtering based on mt percentage
     adata = adata[adata.obs['pct_counts_mt'] < 10, :]
-    print(f"After second filtering (see documentation for definition), adata has {adata.n_obs} rows and {adata.n_vars} columns.", file=log)
+    print(f"After second filtering (see documentation for definition), adata has {adata.n_obs} cells and {adata.n_vars} genes.", file=log)
     # save to table 2
     second_filter = ["Filter#2", str(adata.n_obs), str(adata.n_vars)]
     print(",".join(second_filter), file=table2)
