@@ -2,10 +2,9 @@
 ## First step
 - Preprocess definition: 
   - Document relevant information in a master spreadsheet `scrnaseq_data_master.csv`
-    - Each scRNAseq dataset has an `Internal_ID` such as `idX` where X is the next number in the spreadsheet
-    - Naming convention for each scRNAseq dataset:
-      - {Author/Group}_{Tissue/Area}_{Year}_{Extra}
-      - Example: `Allen_MCA_2019`, `Siletti_Cerebellum_2022`
+    - Each scRNAseq dataset has an `Internal_ID` such as `X_Allen_MCA_Human_2019` where:
+      - X is the next number in the spreadsheet
+      - {FirstAuthor/Consortium/Group}_{Tissue/Region/Area}_{Species}_{Year}
   - Basic filtering:
     - Filter #1: keep cells with at least 200 detected genes and genes need to be expressed in at least 3 cells
     - Filter #2: keep cells where mt percentage is less than 10% for human and 5% for mouse
@@ -33,16 +32,16 @@
 
 ## Step by step instruction for each scRNAseq
 1. Setup
-- Create a new entry in the excel spread sheet `scrnaseq_data_master.csv` with `idX` where X is the next number.
+- Create a new entry in the excel spread sheet `scrnaseq_data_master.csv` with `X_{FirstAuthor/Consortium/Group}_{Tissue/Region/Area}_{Species}_{Year}` where X is the next number.
 - Run Python script:
 ```
 pwd
 /project/prjstphung/Preprocessing_scRNA
-python code/initial_setup.py --id 1 --work_dir data/
+python code/initial_setup.py --id 7_Siletti_Cerebellum_Human_2022 --work_dir data/
 ```
 - What does the above script do? 
-  + create a folder: `id1` in `{working_dir}/data`. Here, `{working_dir}` is `/project/prjstphung/Preprocessing_scRNA/`
-  + create a `readme.md` in `{working_dir}/data/id1`
+  + create a folder: `X_{FirstAuthor/Consortium/Group}_{Tissue/Region/Area}_{Species}_{Year}` in `{working_dir}/data`. Here, `{working_dir}` is `/project/prjstphung/Preprocessing_scRNA/`
+  + create a `readme.md` in `{working_dir}/data/7_Siletti_Cerebellum_Human_2022`
   + updated structure:
   ```
    |-code
@@ -54,13 +53,13 @@ python code/initial_setup.py --id 1 --work_dir data/
    | | |-gene_names_human.txt
    | | |-gene_names_mouse.txt
    |-data
-   | |-id1
+   | |-1_Allen_MCA_Human_2019
    | | |-readme.md
    |-scrnaseq_data_master.csv
   ```
 
-3. Download scrnaseq data to `{working_dir}/data/id1`
-- Document downloading of data in `{working_dir}/data/id1/readme.md`
+3. Download scrnaseq data to `{working_dir}/data/7_Siletti_Cerebellum_Human_2022`
+- Document downloading of data in `{working_dir}/data/7_Siletti_Cerebellum_Human_2022/readme.md`
 - View the data, etc... in order to understand the data structure so that you can update the script `qc_scrna_id1.py` (here, this script has already been modified for this particular data)
 - A few key things to know about the scRNAseq data:
     + what is the format of the data? Is this `csv`, `h5ad`, `loom`? 
