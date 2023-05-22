@@ -5,13 +5,16 @@ import argparse
 
 def main(args):
     # first check if the folder already exists
-    dir_path = os.path.join(args.work_dir, "id" + args.id)
-    if os.path.exists(dir_path):
-        sys.exist("The directory for id", args.id, " already exists.")
+    path = os.path.join(args.work_dir, args.id, "readme.md")
+    print(path)
+    if os.path.exists(path):
+        sys.exit("The directory already exists.")
     else:
-        os.mkdir(dir_path)
+        dir_path = os.path.join(args.work_dir, args.id)
+        # os.mkdir(dir_path)
         readme = open(os.path.join(dir_path, "readme.md"), "w")
         print("#Documentation", file=readme)
+        readme.close()
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Initial setup for processing new scRNAseq data')
