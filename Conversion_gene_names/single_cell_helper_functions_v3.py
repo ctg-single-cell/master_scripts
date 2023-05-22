@@ -45,7 +45,7 @@ def match_alias_previous(gene_names, merged, adata, alternate_symbol):
                     print("found; approved symbol is:" + gene_names.loc[found[0], "Approved symbol"])
                     # now only add if this does not lead to duplicate entries:
                     if not gene_names.loc[found[0], 'NCBI Gene ID'] in merged['NCBI Gene ID'].tolist():
-                        merged.loc[gene, adata.var.shape[1]:] = gene_names.loc[found[0], :]
+                        merged.iloc[gene, adata.var.shape[1]:] = gene_names.loc[found[0], :]
     return merged
 
 def add_gene_names_human(adata, gene_names_fp, gene_names_org, gene_names_add):
@@ -57,6 +57,8 @@ def add_gene_names_human(adata, gene_names_fp, gene_names_org, gene_names_add):
         gene_names_fp is the path to the file used for conversion (i.e. conversion_files/gene_names_human.txt)
     """
     gene_names = pd.read_table(gene_names_fp)
+    # remove Chromosome column (20230513 because the Siletti adata.var has a Chromosome column as well and this is creating 2 columns when merging)
+    gene_names.drop(columns=['Chromosome'], inplace=True)
     print(f"INFO: The conversion file has {gene_names.shape[0]} rows and {gene_names.shape[1]} columns.")
 
     print(f"INFO: In the adata.var, there are {adata.var.shape[0]} rows and {adata.var.shape[1]} columns.")
