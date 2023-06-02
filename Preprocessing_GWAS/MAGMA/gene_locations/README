@@ -1,2 +1,2 @@
-Initially used the MAGMA file NCBI37.3 for protein coding genes, and a files for all genes based on GCF_000001405.25_GRCh37.p13_feature_table.txt
+Initially I used the MAGMA file NCBI37.3 for protein coding genes, and a file for all genes based on GCF_000001405.25_GRCh37.p13_feature_table.txt
 However, not all the protein coding genes in this last file match with those of the MAGMA provided file. For better comparison, use the 37p13 file for protein coding genes instead.
