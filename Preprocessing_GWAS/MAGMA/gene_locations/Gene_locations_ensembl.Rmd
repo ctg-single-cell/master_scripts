@@ -24,6 +24,9 @@ gene_list$ensg <- str_split_fixed(str_split_fixed(gene_list[,9],";",2)[,1],"\"",
 # write to file in magma gene.loc format
 write.table(gene_list[,c(10,1,4,5,7)],"all_ensmbl_genes.loc", col.names=F,row.names=F,quote=F)
 
+# write to file in LDSC coordinate format
+write.table(gene_list[,c(10,1,4,5)],"all_ensmbl_genes_coord.txt", col.names=F,row.names=F,quote=F)
+
 # select only protein coding genes by first creating a field for biotype
 gene_list$biotype <- str_split_fixed(str_split_fixed(gene_list[,9],";",5)[,5],"\"",3)[,2]
 # write to file in magma gene.loc format for protein coding genes only
