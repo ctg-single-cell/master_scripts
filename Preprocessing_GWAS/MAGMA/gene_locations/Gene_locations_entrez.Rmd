@@ -1,0 +1,48 @@
+---
+title: "Gene locations"
+author: "Rachel Brouwer"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+Creating a list of genes and locations based on GRCh37.p13.
+
+Genome annotations GCF_000001405.25_GRCh37.p13_feature_table.txt downloaded from https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.25/ on 05/07/2021.
+
+Add Ensembl IDs through biomaRt.
+
+```{r}
+library(biomaRt)
+setwd("~/Documents/single_cell/gene_locations")
+gene_list <- read.table("GCF_000001405.25_GRCh37.p13_feature_table.txt",comment.char="#",sep='\t',quote="")
+
+# take only those with unique entrez-ID (column 16). 
+# when there are duplicates, prioritize based on the following rules: 
+# ignore ignore alternate/unknown scaffolds, ignore Y chromosome, gene over transcribed pseudogene/mRNA/CDS (keeping the introns and UTR), latest assembly
+gene_list <- gene_list[which(gene_list[,5] == "chromosome" | gene_list[,5] == "fix patch"),]
+gene_list <- gene_list[which(gene_list[,6] != "Y"),]
+
+# select those regions labeled as gene
+gene <- gene_list[which(gene_list[,1]=="gene"),]
+
+# if there are multiple assemblies, choose the patches (there is one gene with two patches, ignore)
+gene = gene[order(gene[,16],gene[,4]),]
+gene <- gene[!duplicated(gene[,16]),]
+
+
+# add gene names based on ensembl IDs, gene2ensembl file downloaded from https://ftp.ncbi.nih.gov/gene/DATA/ on 07/07/21
+
+ensembl <- read.table("gene2ensembl")
+
+# select human genes                                                                                                                      
+ensembl <- ensembl[which(ensembl[,1]==9606),]
+# match entrez genes to ensembl genes
+gene$ensg <- ensembl[match(gene[,16],ensembl[,2]),3]
+
+# write to file in magma gene.loc format
+write.table(gene[,c(16,6,8,9,10,15)],"all_entrez_gene_37p13.loc", col.names=F,row.names=F,quote=F)
+
+# then subset to the protein coding genes
+write.table(gene[which(gene[,2] == "protein_coding"),c(16,6,8,9,10,15)],"protein_coding_entrez_gene_37p13.loc", col.names=F,row.names=F,quote=F)
+
+```
