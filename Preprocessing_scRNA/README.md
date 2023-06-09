@@ -26,7 +26,7 @@
       - `adata.X`: this is the raw count. In the preprocessing steps, if the raw counts were stored in the `adata.raw.X` layer, we update the `adata.X` layer to be the raw count.
       ```
       adata.X.A[1,50:300]
-array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+      array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
        0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.,
        0., 0., 0., 0., 0., 2., 0., 0., 0., 0., 0., 0., 0., 0., 0., 4., 0.,
