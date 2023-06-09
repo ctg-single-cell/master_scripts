@@ -56,18 +56,18 @@
         ```
         adata.var
                   feature_id  feature_is_filtered feature_reference feature_biotype     mt  n_cells_by_counts  mean_counts  pct_dropout_by_counts  total_counts  n_cells          ensembl
-symbol
-SLC16A13     ENSG00000174327                False    NCBITaxon:9606            gene  False                  6     0.000468              99.953242           6.0        5  ENSG00000174327
-MMP25        ENSG00000008516                False    NCBITaxon:9606            gene  False                  3     0.000234              99.976621           3.0        3  ENSG00000008516
-MAPK8IP1     ENSG00000121653                False    NCBITaxon:9606            gene  False                 97     0.008339              99.244077         107.0       95  ENSG00000121653
-FAF1         ENSG00000185104                False    NCBITaxon:9606            gene  False               2761     0.282185              78.483479        3621.0     2685  ENSG00000185104
-RP1-30E17.2  ENSG00000225689                False    NCBITaxon:9606            gene  False                 63     0.005455              99.509040          70.0       63              NaN
-...                      ...                  ...               ...             ...    ...                ...          ...                    ...           ...      ...              ...
-NRG3         ENSG00000185737                False    NCBITaxon:9606            gene  False               4877     1.097413              61.993454       14082.0     4687  ENSG00000185737
-CSTA         ENSG00000121552                False    NCBITaxon:9606            gene  False                  4     0.000312              99.968828           4.0        3  ENSG00000121552
-ERMN         ENSG00000136541                False    NCBITaxon:9606            gene  False                  4     0.000312              99.968828           4.0        4  ENSG00000136541
-CACNG8       ENSG00000142408                False    NCBITaxon:9606            gene  False                113     0.009430              99.119389         121.0      110  ENSG00000142408
-N4BP1        ENSG00000102921                False    NCBITaxon:9606            gene  False                343     0.030938              97.326995         397.0      333  ENSG00000102921
+        symbol
+        SLC16A13     ENSG00000174327                False    NCBITaxon:9606            gene  False                  6     0.000468              99.953242           6.0        5  ENSG00000174327
+        MMP25        ENSG00000008516                False    NCBITaxon:9606            gene  False                  3     0.000234              99.976621           3.0        3  ENSG00000008516
+        MAPK8IP1     ENSG00000121653                False    NCBITaxon:9606            gene  False                 97     0.008339              99.244077         107.0       95  ENSG00000121653
+        FAF1         ENSG00000185104                False    NCBITaxon:9606            gene  False               2761     0.282185              78.483479        3621.0     2685  ENSG00000185104
+        RP1-30E17.2  ENSG00000225689                False    NCBITaxon:9606            gene  False                 63     0.005455              99.509040          70.0       63              NaN
+        ...                      ...                  ...               ...             ...    ...                ...          ...                    ...           ...      ...              ...
+        NRG3         ENSG00000185737                False    NCBITaxon:9606            gene  False               4877     1.097413              61.993454       14082.0     4687  ENSG00000185737
+        CSTA         ENSG00000121552                False    NCBITaxon:9606            gene  False                  4     0.000312              99.968828           4.0        3  ENSG00000121552
+        ERMN         ENSG00000136541                False    NCBITaxon:9606            gene  False                  4     0.000312              99.968828           4.0        4  ENSG00000136541
+        CACNG8       ENSG00000142408                False    NCBITaxon:9606            gene  False                113     0.009430              99.119389         121.0      110  ENSG00000142408
+        N4BP1        ENSG00000102921                False    NCBITaxon:9606            gene  False                343     0.030938              97.326995         397.0      333  ENSG00000102921
         ```
         + Above, the column `feature_id` was the ensembl column that came originally with the scRNAseq data. The `ensembl` column is the one we added using the conversion script (see lines 15 above for explanation)
 
