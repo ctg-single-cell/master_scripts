@@ -50,6 +50,7 @@
           + `total_counts_mt`
           + `pct_counts_mt`
           + `n_genes`
+        + The column for cell type annotation is not changed here because there could be different levels for annotation. Rather, please refer to the readme for each specific dataset to know what the column name is for the cell type. 
       - `adata.var`: this is the dataframe storing the information for the genes:
         + row index is the gene symbol with the name of the row index being `symbol`. 
         + the converted ensembl id is stored in the column with column name `ensembl`. This is the one we should use for downstream analyses
