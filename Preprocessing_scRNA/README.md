@@ -16,31 +16,23 @@
   - Save the "preprocessed" scRNAseq data:
     - This is the file that one should use to calculate different statistics prior to going to the different pipeline (such as mean or specificity)
     - Naming convention: {Internal_ID}.h5ad where `Internal_ID` is in the spreadsheet `scrnaseq_data_master.csv`.
-    - An example location of the "preprocesed" scRNAseq data: `/gpfs/work5/0/vusr0480/Preprocessing_scRNA/data/219_Caoetal2020_MuscleOrgan_Human_2020_Level2/219_Caoetal2020_MuscleOrgan_Human_2020_Level2.h5ad`
+    - An example location of the "preprocesed" scRNAseq data: `/gpfs/work5/0/vusr0480/Preprocessing_scRNA/data/1_Allen_MCA_Human_2019/1_Allen_MCA_Human_2019.h5ad`
     - Brief description of the layers in this `h5ad` file:
       - Example:
       ```
-      # change directory to: `/gpfs/work5/0/vusr0480/Preprocessing_scRNA/data/210_Caoetal2020_Eye_Human_2020_Level2/` on snellius
-      adata = anndata.read("210_Caoetal2020_Eye_Human_2020_Level2.h5ad")
+      # change directory to: `gpfs/work5/0/vusr0480/Preprocessing_scRNA/data/1_Allen_MCA_Human_2019/` on snellius
+      adata = anndata.read("1_Allen_MCA_Human_2019.h5ad")
       ```
       - `adata.X`: this is the raw count. In the preprocessing steps, if the raw counts were stored in the `adata.raw.X` layer, we update the `adata.X` layer to be the raw count.
       ```
-      adata.X.A[1,50:300]
-      array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.,
-       0., 0., 0., 0., 0., 2., 0., 0., 0., 0., 0., 0., 0., 0., 0., 4., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0.,
-       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.], dtype=float32)
+      adata.X
+      array([[  0.,   0.,   0., ...,   0.,   0.,   1.],
+       [  0.,   0.,   0., ..., 748.,   0.,   0.],
+       [  0.,   0.,   0., ...,   0.,   0.,   0.],
+       ...,
+       [  0.,   0.,   0., ..., 129.,   0.,   0.],
+       [  0.,   0.,   0., ..., 376.,   0.,   0.],
+       [  0.,   0.,   0., ...,   0.,   0.,   0.]], dtype=float32)
       ```
         + Here, we assume that since the values are whole integer this is probably the raw count (we could never be 100% sure though).
       - `adata.obs`: this is the observation dataframe where each row contains the metadata for each cell. 
@@ -56,21 +48,20 @@
         + the converted ensembl id is stored in the column with column name `ensembl`. This is the one we should use for downstream analyses
         ```
         adata.var
-                  feature_id  feature_is_filtered feature_reference feature_biotype     mt  n_cells_by_counts  mean_counts  pct_dropout_by_counts  total_counts  n_cells          ensembl
+                        mt  n_cells_by_counts  mean_counts  pct_dropout_by_counts  total_counts  n_cells          ensembl
         symbol
-        SLC16A13     ENSG00000174327                False    NCBITaxon:9606            gene  False                  6     0.000468              99.953242           6.0        5  ENSG00000174327
-        MMP25        ENSG00000008516                False    NCBITaxon:9606            gene  False                  3     0.000234              99.976621           3.0        3  ENSG00000008516
-        MAPK8IP1     ENSG00000121653                False    NCBITaxon:9606            gene  False                 97     0.008339              99.244077         107.0       95  ENSG00000121653
-        FAF1         ENSG00000185104                False    NCBITaxon:9606            gene  False               2761     0.282185              78.483479        3621.0     2685  ENSG00000185104
-        RP1-30E17.2  ENSG00000225689                False    NCBITaxon:9606            gene  False                 63     0.005455              99.509040          70.0       63              NaN
-        ...                      ...                  ...               ...             ...    ...                ...          ...                    ...           ...      ...              ...
-        NRG3         ENSG00000185737                False    NCBITaxon:9606            gene  False               4877     1.097413              61.993454       14082.0     4687  ENSG00000185737
-        CSTA         ENSG00000121552                False    NCBITaxon:9606            gene  False                  4     0.000312              99.968828           4.0        3  ENSG00000121552
-        ERMN         ENSG00000136541                False    NCBITaxon:9606            gene  False                  4     0.000312              99.968828           4.0        4  ENSG00000136541
-        CACNG8       ENSG00000142408                False    NCBITaxon:9606            gene  False                113     0.009430              99.119389         121.0      110  ENSG00000142408
-        N4BP1        ENSG00000102921                False    NCBITaxon:9606            gene  False                343     0.030938              97.326995         397.0      333  ENSG00000102921
+        3.8-1.2      False                 23     0.012344              99.953457         610.0       23              NaN
+        3.8-1.3      False                 48     0.065241              99.902867        3224.0       48              NaN
+        3.8-1.4      False                 27     0.016796              99.945363         830.0       27              NaN
+        3.8-1.5      False                 28     0.004938              99.943339         244.0       28              NaN
+        5-HT3C2      False               1093     0.238481              97.788211       11785.0     1093  ENSG00000233576
+        ...            ...                ...          ...                    ...           ...      ...              ...
+        ZYX          False              24628    33.814396              50.162899     1671006.0    24628  ENSG00000159840
+        ZZEF1        False              37165    65.633690              24.793087     3243420.0    37165  ENSG00000074755
+        ZZZ3         False              40929   166.196274              17.176275     8212921.0    40929  ENSG00000036549
+        bA255A11.4   False                 85     0.019002              99.827994         939.0       85              NaN
+        bA395L14.12  False               6087     0.228363              87.682377       11285.0     6087              NaN
         ```
-        + Above, the column `feature_id` was the ensembl column that came originally with the scRNAseq data. The `ensembl` column is the one we added using the conversion script (see lines 15 above for explanation)
 
 - Initial setup:
   - For documenting, the working directory is: `/gpfs/work5/0/vusr0480/Preprocessing_scRNA/` (on snellius).
