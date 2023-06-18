@@ -1,6 +1,7 @@
 # This script outputs qc metrics for: 2_Allen_M1_Human_2020
 # Author: Tanya Phung (t.n.phung@vu.nl)
 # Date: 2023-06-11
+# Update on 2023-06-17 to incorporate Rachel's suggestions, namely: (1) rename cell type label to be more consistent, (2) save as sparse matrix
 
 import scanpy as sc
 import pandas as pd
@@ -9,6 +10,7 @@ import anndata
 from matplotlib import pyplot as plt
 import os
 import single_cell_helper_functions_v3
+from scipy.sparse import csr_matrix
 
 def main():
     # initialize
@@ -77,18 +79,27 @@ def main():
         sc.pl.highest_expr_genes(adata, n_top=20, show=False)
         plt.savefig(plot1, bbox_inches="tight")
 
+    # rename cell type columns
+    adata.obs.rename(columns={"class_label": "cell_type_level_1", "subclass_label": "cell_type_level_2", "cluster_label": "cell_type_level_3"}, inplace = True)
+
     # tabulate the number of cells per cell type
     # define the available cell types in the dataset
-    cts_level1 = adata.obs["subclass_label"].dropna().unique()
+    cts_level1 = adata.obs["cell_type_level_1"].dropna().unique()
     for ct in cts_level1:
-        ct_data = adata[adata.obs["subclass_label"] == ct, :].X
+        ct_data = adata[adata.obs["cell_type_level_1"] == ct, :].X
         out = ["Level_1", ct, str(ct_data.shape[0])]
         print("|".join(out), file=table3)
     
-    cts_level2 = adata.obs["cluster_label"].dropna().unique()
+    cts_level2 = adata.obs["cell_type_level_2"].dropna().unique()
     for ct in cts_level2:
-        ct_data = adata[adata.obs["cluster_label"] == ct, :].X
+        ct_data = adata[adata.obs["cell_type_level_2"] == ct, :].X
         out = ["Level_2", ct, str(ct_data.shape[0])]
+        print("|".join(out), file=table3)
+    
+    cts_level2 = adata.obs["cell_type_level_3"].dropna().unique()
+    for ct in cts_level2:
+        ct_data = adata[adata.obs["cell_type_level_3"] == ct, :].X
+        out = ["Level_3", ct, str(ct_data.shape[0])]
         print("|".join(out), file=table3)
     
     # convert to ensembl
@@ -104,6 +115,7 @@ def main():
     ensembl_convertable = ["Ngenes with ensembl", str(adata.n_obs), str(ngenes_after_conversion)]
     print(",".join(ensembl_convertable), file=table2)
     # save 
+    adata_gene_converted.X = csr_matrix(adata_gene_converted.X) #convert to sparse
     adata_gene_converted.write_h5ad(filename=clean_adata_fp)
 
     # save data to plot violin in R

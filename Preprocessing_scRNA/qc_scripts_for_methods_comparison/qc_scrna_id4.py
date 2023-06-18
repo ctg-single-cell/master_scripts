@@ -1,6 +1,7 @@
 # This script outputs qc metrics for: 4_Allen_Cortex.Hippocampus_Mouse_2019
 # Author: Tanya Phung (t.n.phung@vu.nl)
 # Date: 2023-06-09
+# Update on 2023-06-17 to incorporate Rachel's suggestions, namely: (1) rename cell type label to be more consistent, (2) save as sparse matrix
 
 import scanpy as sc
 import pandas as pd
@@ -9,6 +10,7 @@ import anndata
 from matplotlib import pyplot as plt
 import os
 import single_cell_helper_functions_v3
+from scipy.sparse import csr_matrix
 
 def main():
     # initialize
@@ -64,47 +66,56 @@ def main():
 
     # mitochondrial genes
     # read that mouse mitochondria genes starts with mt but not 100% sure about this. However, the ABA data doesn't seem to contain mt genes for human so this should be ok
-    adata.var['mt'] = adata.var["symbol"].str.startswith('mt-') 
+    adata_gene_converted.var['mt'] = adata_gene_converted.var["symbol"].str.startswith('mt-') 
     # count the number of genes that are mitochondrial genes
-    n_mt_genes = np.count_nonzero(adata.var['mt'])
+    n_mt_genes = np.count_nonzero(adata_gene_converted.var['mt'])
     print(f"adata has {n_mt_genes} mitochondrial genes.", file=log)
 
     # calculate qc metrics
-    sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
+    sc.pp.calculate_qc_metrics(adata_gene_converted, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
 
     # first filtering: accept cells with at least 200 detected genes and genes need to be expressed in at least 3 cells
-    sc.pp.filter_cells(adata, min_genes=200)
-    sc.pp.filter_genes(adata, min_cells=3)
+    sc.pp.filter_cells(adata_gene_converted, min_genes=200)
+    sc.pp.filter_genes(adata_gene_converted, min_cells=3)
 
-    print(f"After first filtering (see documentation for definition), adata has {adata.n_obs} cells and {adata.n_vars} genes.", file=log)
+    print(f"After first filtering (see documentation for definition), adata has {adata_gene_converted.n_obs} cells and {adata_gene_converted.n_vars} genes.", file=log)
     # save to table 2
-    first_filter = ["Filter#1", str(adata.n_obs), str(adata.n_vars)]
+    first_filter = ["Filter#1", str(adata_gene_converted.n_obs), str(adata_gene_converted.n_vars)]
     print(",".join(first_filter), file=table2)
 
     # second filtering based on mt percentage (5% for mouse)
-    adata = adata[adata.obs['pct_counts_mt'] < 5, :]
-    print(f"After second filtering (see documentation for definition), adata has {adata.n_obs} cells and {adata.n_vars} genes.", file=log)
+    adata_gene_converted = adata_gene_converted[adata_gene_converted.obs['pct_counts_mt'] < 5, :]
+    print(f"After second filtering (see documentation for definition), adata has {adata_gene_converted.n_obs} cells and {adata_gene_converted.n_vars} genes.", file=log)
     # save to table 2
-    second_filter = ["Filter#2", str(adata.n_obs), str(adata.n_vars)]
+    second_filter = ["Filter#2", str(adata_gene_converted.n_obs), str(adata_gene_converted.n_vars)]
     print(",".join(second_filter), file=table2)
 
     # plot highest expressed genes
     with plt.rc_context():  # Use this to set figure params like size and dpi
-        sc.pl.highest_expr_genes(adata, n_top=20, show=False)
+        sc.pl.highest_expr_genes(adata_gene_converted, n_top=20, show=False)
         plt.savefig(plot1, bbox_inches="tight")
+
+    # rename cell type columns
+    adata_gene_converted.obs.rename(columns={"class_label": "cell_type_level_1", "subclass_label": "cell_type_level_2", "cluster_label": "cell_type_level_3"}, inplace = True)
 
     # tabulate the number of cells per cell type
     # define the available cell types in the dataset
-    cts_level1 = adata.obs["subclass_label"].dropna().unique()
+    cts_level1 = adata_gene_converted.obs["cell_type_level_1"].dropna().unique()
     for ct in cts_level1:
-        ct_data = adata[adata.obs["subclass_label"] == ct, :].X
+        ct_data = adata_gene_converted[adata_gene_converted.obs["cell_type_level_1"] == ct, :].X
         out = ["Level_1", ct, str(ct_data.shape[0])]
         print("|".join(out), file=table3)
     
-    cts_level2 = adata.obs["cluster_label"].dropna().unique()
+    cts_level2 = adata_gene_converted.obs["cell_type_level_2"].dropna().unique()
     for ct in cts_level2:
-        ct_data = adata[adata.obs["cluster_label"] == ct, :].X
+        ct_data = adata_gene_converted[adata_gene_converted.obs["cell_type_level_2"] == ct, :].X
         out = ["Level_2", ct, str(ct_data.shape[0])]
+        print("|".join(out), file=table3)
+    
+    cts_level2 = adata_gene_converted.obs["cell_type_level_3"].dropna().unique()
+    for ct in cts_level2:
+        ct_data = adata_gene_converted[adata_gene_converted.obs["cell_type_level_3"] == ct, :].X
+        out = ["Level_3", ct, str(ct_data.shape[0])]
         print("|".join(out), file=table3)
     
     
@@ -112,11 +123,12 @@ def main():
     print(f"After converting to ensembl, adata has {ngenes_after_conversion} genes.", file=log)
     adata_gene_converted.var.set_index('symbol', inplace=True) # set the index to gene symbol
     # save to table 2
-    ensembl_convertable = ["Ngenes with ensembl", str(adata.n_obs), str(ngenes_after_conversion)]
+    ensembl_convertable = ["Ngenes with ensembl", str(adata_gene_converted.n_obs), str(ngenes_after_conversion)]
     print(",".join(ensembl_convertable), file=table2)
     # save 
     # remove columns 21 because it's has different type. Will throw an error if this column is present. I figure that it is ok to remove because it's not really relevant/needed 
     adata_gene_converted.obs.drop(adata_gene_converted.obs.columns[21], axis=1, inplace=True)
+    adata_gene_converted.X = csr_matrix(adata_gene_converted.X) #convert to sparse
     adata_gene_converted.write_h5ad(filename=clean_adata_fp)
 
     # save data to plot violin in R
