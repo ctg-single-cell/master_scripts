@@ -65,34 +65,34 @@ adata.obs
 
 [49417 rows x 46 columns]
 ```
-    - cell id: is stored in the `sample_name` column
-    - cell types: are stored in 3 layers:
-        - `cell_type_level_1`: 
-        
-        ```
-        adata.obs["cell_type_level_1"].unique()
-        [NaN, 'GABAergic', 'Glutamatergic', 'Non-neuronal']
-        Categories (3, object): ['GABAergic', 'Glutamatergic', 'Non-neuronal']
-        ```
-        - `cell_type_level_2`:
-        
-        ```
-        adata.obs["cell_type_level_2"].unique()
-        [NaN, 'VIP', 'LAMP5', 'IT', 'PAX6', ..., 'L5 ET', 'Pericyte', 'Endothelial', 'L4 IT', 'VLMC']
-        Length: 20
-        Categories (19, object): ['Astrocyte', 'Endothelial', 'IT', 'L4 IT', ..., 'Pericyte', 'SST', 'VIP', 'VLMC']
-        ```
-        
-        - `cell_type_level_3`:  
-        
-        ```
-        adata.obs["cell_type_level_3"].unique()
-        [NaN, 'Inh L2-5 VIP TOX2', 'Inh L1 LAMP5 GGT8P', 'Inh L1 LAMP5 NDNF', 'Inh L1-3 VIP ZNF322P1', ..., 'Exc L3-5 FEZF2 DCN', 'Exc L4 RORB CCDC168', 'Exc L3 LINC00507 CTXN3', 'Exc L3 THEMIS PLA2G7', 'Exc L5 FEZF2 DYRK2']
-        Length: 121
-        Categories (120, object): ['Astro L1 FGFR3 FOS', 'Astro L1 FGFR3 MT1G', 'Astro L1-6 FGFR3 ETNPPL',
-                                'Endo L2-5 CLDN5', ..., 'Oligo L4-6 MOBP COL18A1', 'Oligo L4-6 OPALIN',
-                                'Peri L1-6 MUSTN1', 'VLMC L1-3 CYP1B1']
-        ```
+  - cell id: is stored in the `sample_name` column
+  - cell types: are stored in 3 layers:
+      - `cell_type_level_1`: 
+      
+      ```
+      adata.obs["cell_type_level_1"].unique()
+      [NaN, 'GABAergic', 'Glutamatergic', 'Non-neuronal']
+      Categories (3, object): ['GABAergic', 'Glutamatergic', 'Non-neuronal']
+      ```
+      - `cell_type_level_2`:
+      
+      ```
+      adata.obs["cell_type_level_2"].unique()
+      [NaN, 'VIP', 'LAMP5', 'IT', 'PAX6', ..., 'L5 ET', 'Pericyte', 'Endothelial', 'L4 IT', 'VLMC']
+      Length: 20
+      Categories (19, object): ['Astrocyte', 'Endothelial', 'IT', 'L4 IT', ..., 'Pericyte', 'SST', 'VIP', 'VLMC']
+      ```
+      
+      - `cell_type_level_3`:  
+      
+      ```
+      adata.obs["cell_type_level_3"].unique()
+      [NaN, 'Inh L2-5 VIP TOX2', 'Inh L1 LAMP5 GGT8P', 'Inh L1 LAMP5 NDNF', 'Inh L1-3 VIP ZNF322P1', ..., 'Exc L3-5 FEZF2 DCN', 'Exc L4 RORB CCDC168', 'Exc L3 LINC00507 CTXN3', 'Exc L3 THEMIS PLA2G7', 'Exc L5 FEZF2 DYRK2']
+      Length: 121
+      Categories (120, object): ['Astro L1 FGFR3 FOS', 'Astro L1 FGFR3 MT1G', 'Astro L1-6 FGFR3 ETNPPL',
+                              'Endo L2-5 CLDN5', ..., 'Oligo L4-6 MOBP COL18A1', 'Oligo L4-6 OPALIN',
+                              'Peri L1-6 MUSTN1', 'VLMC L1-3 CYP1B1']
+      ```
 
 - `var` layer:
     - the row index is the gene symbol. The name of the row index is `symbol`
