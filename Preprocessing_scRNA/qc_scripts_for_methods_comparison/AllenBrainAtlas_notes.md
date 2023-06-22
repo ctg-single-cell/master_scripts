@@ -93,6 +93,21 @@ adata.obs
                               'Endo L2-5 CLDN5', ..., 'Oligo L4-6 MOBP COL18A1', 'Oligo L4-6 OPALIN',
                               'Peri L1-6 MUSTN1', 'VLMC L1-3 CYP1B1']
       ```
+    - Additional columns added on 6-22-2023 to record whether a cell should be keep (True) or removed (False) based on the following conditions:
+        - a cell is removed if the there is no cell type annotation (NaN)
+        - a cell if removed if it's annotated to a cell type that only has 1 cell 
+        - These columns are: `keep_level_1`, `keep_level_2`, and `keep_level_3`
+        - Sanity check to make sure that this implementation is correct:
+        
+        ```
+        # for 1_Allen_MCA_Human_2019, level_1 cell type, there are NaN
+        adata = anndata.read("1_Allen_MCA_Human_2019.h5ad")
+        adata.obs["cell_type_level_1"].isna().sum()
+        1985
+        adata.obs[adata.obs["keep_level_1"]==False].shape[0]
+        1985
+        ```
+        
 
 - `var` layer:
     - the row index is the gene symbol. The name of the row index is `symbol`

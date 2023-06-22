@@ -2,6 +2,7 @@
 # Author: Tanya Phung (t.n.phung@vu.nl)
 # Date: 2023-06-09
 # Update on 2023-06-17 to incorporate Rachel's suggestions, namely: (1) rename cell type label to be more consistent, (2) save as sparse matrix
+# Update on 2023-06-21: add 3 columns: keep_level_1, keep_level_2, keep_level_3 where TRUE mean keeping the cell and FALSE means removing the cell in downstream analyses because the number of cells for that cell type is less than 2
 
 import scanpy as sc
 import pandas as pd
@@ -100,23 +101,52 @@ def main():
 
     # tabulate the number of cells per cell type
     # define the available cell types in the dataset
+
+    # create a list to store the cell types where the number of cells in that cell type is <2
+    cts_level_1_rm = set({np.nan})
+    cts_level_2_rm = set({np.nan})
+    cts_level_3_rm = set({np.nan})
+
     cts_level1 = adata_gene_converted.obs["cell_type_level_1"].dropna().unique()
+    l1_n_cells_with_annot = 0
     for ct in cts_level1:
         ct_data = adata_gene_converted[adata_gene_converted.obs["cell_type_level_1"] == ct, :].X
         out = ["Level_1", ct, str(ct_data.shape[0])]
         print("|".join(out), file=table3)
+        l1_n_cells_with_annot += ct_data.shape[0]
+        if ct_data.shape[0] < 2: #change here if necessary
+            cts_level_1_rm.add(ct)
+    l1_n_no_annot = ["Level_1", "unknown", str(adata_gene_converted.obs.shape[0]-l1_n_cells_with_annot)]
+    print("|".join(l1_n_no_annot), file=table3)
     
     cts_level2 = adata_gene_converted.obs["cell_type_level_2"].dropna().unique()
+    l2_n_cells_with_annot = 0
     for ct in cts_level2:
         ct_data = adata_gene_converted[adata_gene_converted.obs["cell_type_level_2"] == ct, :].X
         out = ["Level_2", ct, str(ct_data.shape[0])]
         print("|".join(out), file=table3)
+        l2_n_cells_with_annot += ct_data.shape[0]
+        if ct_data.shape[0] < 2: #change here if necessary
+            cts_level_2_rm.add(ct)
+    l2_n_no_annot = ["Level_2", "unknown", str(adata_gene_converted.obs.shape[0]-l2_n_cells_with_annot)]
+    print("|".join(l2_n_no_annot), file=table3)
     
-    cts_level2 = adata_gene_converted.obs["cell_type_level_3"].dropna().unique()
-    for ct in cts_level2:
+    cts_level3 = adata_gene_converted.obs["cell_type_level_3"].dropna().unique()
+    l3_n_cells_with_annot = 0
+    for ct in cts_level3:
         ct_data = adata_gene_converted[adata_gene_converted.obs["cell_type_level_3"] == ct, :].X
         out = ["Level_3", ct, str(ct_data.shape[0])]
         print("|".join(out), file=table3)
+        l3_n_cells_with_annot += ct_data.shape[0]
+        if ct_data.shape[0] < 2: #change here if necessary
+            cts_level_3_rm.add(ct)
+    l3_n_no_annot = ["Level_3", "unknown", str(adata_gene_converted.obs.shape[0]-l3_n_cells_with_annot)]
+    print("|".join(l3_n_no_annot), file=table3)
+
+    # add 3 columns to adata.obs (keep_level_1, keep_level_2, and keep_level_3)
+    adata_gene_converted.obs['keep_level_1'] = [False if x in cts_level_1_rm else True for x in adata_gene_converted.obs['cell_type_level_1']]
+    adata_gene_converted.obs['keep_level_2'] = [False if x in cts_level_2_rm else True for x in adata_gene_converted.obs['cell_type_level_2']]
+    adata_gene_converted.obs['keep_level_3'] = [False if x in cts_level_3_rm else True for x in adata_gene_converted.obs['cell_type_level_3']]
     
     
     ngenes_after_conversion = adata_gene_converted.var.dropna(subset=["ensembl"]).shape[0]
@@ -125,6 +155,7 @@ def main():
     # save to table 2
     ensembl_convertable = ["Ngenes with ensembl", str(adata_gene_converted.n_obs), str(ngenes_after_conversion)]
     print(",".join(ensembl_convertable), file=table2)
+    
     # save 
     # remove columns 21 because it's has different type. Will throw an error if this column is present. I figure that it is ok to remove because it's not really relevant/needed 
     adata_gene_converted.obs.drop(adata_gene_converted.obs.columns[21], axis=1, inplace=True)
