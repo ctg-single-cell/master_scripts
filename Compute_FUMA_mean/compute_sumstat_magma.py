@@ -2,8 +2,8 @@
 # Row is the gene
 # Column is the cell type
 # Credit: Modified from Rachel's original script single_cell_MAGMA_files_v2.py
-# Example usage:
-# python compute_sumstat_magma.py --adata {input.adata} --ct_colname {params.ct_colname} --outdir {params.outdir} --genes_conversion {input.gene_conversion}
+# Change log:
+# 2023-06-28: update to take h5ad input that is preprocessed
 
 import scanpy as sc
 import pandas as pd
@@ -12,53 +12,30 @@ import os
 import sys
 import anndata
 
-def read_h5ad(data_path):
-    """data is in .h5ad file format"""
-    return sc.read_h5ad(data_path)
-
-def read_csv(matrix_path, meta_path):
-    "matrix is the count matrix in csv and meta is the meta file in csv format"
-    adata = sc.read_csv(matrix_path)
-    meta = pd.read_csv(meta_path)
-    adata.obs = meta
-    return adata
-
-
-
-def convert_gene_names(genes_conversion, ctmatrix):
-    """
-    This function is used to convert (for now) from gene symbol to ensemble id
-    :return:
-    """
-    # for now this is making a lot of assumptions but will need to make this more uniform
-    with open(genes_conversion, "r") as f:
-        genes_dict = {line.rstrip("\n").split()[1]: line.rstrip("\n").split()[0] for line in f}
-
-    ctmatrix_rename = ctmatrix.rename(genes_dict, axis='columns')
-    ctmatrix_t = ctmatrix.transpose()
-    ctmatrix_t_rename = ctmatrix_t.rename(genes_dict, axis='rows')
-    cond = ctmatrix.columns.isin(ctmatrix_rename.columns)
-    ctmatrix_t_rename_drop = ctmatrix_t_rename.drop(ctmatrix_t[cond].index, inplace=False)
-    return ctmatrix_t_rename_drop
-
 def main(args):
     """
     :param adata:
     :param ct_colname: this is the column name that define the cell type from the metadata. Typically this could be cell_type, cluster_label, etc...
     :param outdir
     """
-    adata_orig = anndata.read(args.data)
-    ct_colname = args.ct_colname
-    outdir = args.outdir
+    outdir = args.out
+    adata_original = anndata.read(args.h5ad)
+    level = args.level
+    keep_column = "keep_" + level
+    ct_colname = "cell_type_" + level
 
-    # make gene unique
-    adata_orig.var_names_make_unique()
+    # because the scRNAseq data contains cells that do not have an annotation and genes that don't have ensemble, it might be cleaner to create a filtered adata where:
+    # cells that don't have a cell type annotation (NaN) will be removed and cells where the number of cells for that cell type is < 2
+    # genes that were not convertible to ensembl
+    adata_temp = anndata.AnnData(X = adata_original[adata_original.obs[keep_column]== True].X, obs=adata_original.obs[adata_original.obs[keep_column] == True], var=adata_original.var) #subset based on the cells
 
-    # Subset the adata to remove genes that don't have a converted ensembl id
-    genes_list_wo_ensembl = adata_orig.var[adata_orig.var['ensembl'].isna()].index.tolist()
-    all_genes = adata_orig.var_names.to_list()
-    genes_list_ensembl = list(set(all_genes) - set(genes_list_wo_ensembl))
-    adata = adata_orig[:, genes_list_ensembl]
+    gene_list = adata_original.var[adata_original.var["ensembl"].notnull()].index.values.tolist() #this obtains a list of gene in symbol that has an ensemble conversion
+    adata = adata_temp[:, gene_list].copy() #subset based on the genes (keep the genes if it was converted to ensemble successfully)
+
+    # now, adata.X is the matrix in numpy format where row is cell ID and column is the gene
+    adata_nrow = adata.shape[0]
+    adata_ncol = adata.shape[1]
+    print(f"adata has {adata_nrow} rows (cells) and {adata_ncol} columns (genes)")
 
     # first normalize
     # normalize counts per cell (in place)
@@ -111,18 +88,23 @@ def main(args):
     means_cell_log_counts_pM.loc["Average"] = (means_cell_log_counts_pM.mean(axis=0))
     means_cell_log_counts_pM.index = [w.replace(' ', '_') for w in means_cell_log_counts_pM.index.values]
     means_cell_log_counts_pM.index = [w.replace('/', '_') for w in means_cell_log_counts_pM.index.values]
+    means_cell_log_counts_pM.index = [w.replace(':', '_') for w in means_cell_log_counts_pM.index.values]
 
     sds_cell_log_counts_pM.index = [w.replace(' ', '_') for w in sds_cell_log_counts_pM.index.values]
     sds_cell_log_counts_pM.index = [w.replace('/', '_') for w in sds_cell_log_counts_pM.index.values]
+    sds_cell_log_counts_pM.index = [w.replace(':', '_') for w in sds_cell_log_counts_pM.index.values]
 
     cov_cell_log_counts_pM.index = [w.replace(' ', '_') for w in cov_cell_log_counts_pM.index.values]
     cov_cell_log_counts_pM.index = [w.replace('/', '_') for w in cov_cell_log_counts_pM.index.values]
+    cov_cell_log_counts_pM.index = [w.replace(':', '_') for w in cov_cell_log_counts_pM.index.values]
 
     varom_cell_log_counts_pM.index = [w.replace(' ', '_') for w in varom_cell_log_counts_pM.index.values]
     varom_cell_log_counts_pM.index = [w.replace('/', '_') for w in varom_cell_log_counts_pM.index.values]
+    varom_cell_log_counts_pM.index = [w.replace(':', '_') for w in varom_cell_log_counts_pM.index.values]
 
     spec_cell_counts_pM.index = [w.replace(' ', '_') for w in spec_cell_counts_pM.index.values]
     spec_cell_counts_pM.index = [w.replace('/', '_') for w in spec_cell_counts_pM.index.values]
+    spec_cell_counts_pM.index = [w.replace(':', '_') for w in spec_cell_counts_pM.index.values]
 
     means_cell_log_counts_pM_t = means_cell_log_counts_pM.T
     means_cell_log_counts_pM_t.index.name = "GENE"
@@ -157,8 +139,8 @@ def main(args):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Generate input for magma gene property from scRNAseq data')
-    parser.add_argument('--data', required=True, help='Path to the data in h5ad format. This script is to be used with the scRNAseq data after the preprocessing pipeline.')
-    parser.add_argument('--ct_colname', required=False, help='Column label of the cell type')
+    parser.add_argument('--h5ad', required=True, help='Path to the data in h5ad format. This script is to be used with the scRNAseq data after the preprocessing pipeline.')
+    parser.add_argument('--level', required=False, help='Cell type annotation level (accepted inputs are: level_1, level_2, and level_3)')
     parser.add_argument('--outdir', required=False, help='Path to the output directory')
     return parser.parse_args()
 
