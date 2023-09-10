@@ -1,0 +1,10 @@
+{   
+    "magma_executable": "/gpfs/home6/tphung/software/magma/magma",
+    "gene_region": "protein_coding",
+    "gene_name": "ensemble",
+    "gwas_dir": "/gpfs/home6/tphung/projects/alc_jeanne/out/processed_gwas/",
+    "out_dir": "/gpfs/home6/tphung/projects/alc_jeanne/out/ct_enrichment/fuma_ct/",
+    "traits": ["sumstats_f1_N", "sumstats_f2_N", "sumstats_f3_N", "sumstats_f4_N"],
+    "scrna_dir": "/gpfs/work5/0/vusr0480/Processed_scRNA/data/magma/",
+    "calc_adj_p_script": "/gpfs/home6/tphung/software/master_scripts/FUMA_Celltype_cmd/calc_adj_pval_magma_step1.R"
+}
