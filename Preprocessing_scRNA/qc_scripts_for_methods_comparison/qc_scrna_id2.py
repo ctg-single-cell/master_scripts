@@ -50,6 +50,9 @@ def main():
     original = ["Original", str(adata.n_obs), str(adata.n_vars)]
     print(",".join(original), file=table2)
 
+    print("Viewing the adata matrix - are these integer counts?",file=log)
+    print(adata.X[1:10,1:10],file=log)
+
     # mitochondrial genes
     adata.var['mt'] = adata.var_names.str.startswith('MT-')
     # count the number of genes that are mitochondrial genes
